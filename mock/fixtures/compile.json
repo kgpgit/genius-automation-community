@@ -1,0 +1,33 @@
+{
+  "tool": "compile_project",
+  "status": "success",
+  "project": "SteelPlant_Line3",
+  "compile_result": {
+    "state": "Success",
+    "duration_seconds": 12.4,
+    "devices_compiled": [
+      {
+        "name": "PLC_Steckel_Mill",
+        "state": "Success",
+        "block_count": 11,
+        "message_count": 0
+      }
+    ],
+    "total_errors": 0,
+    "total_warnings": 2,
+    "warnings": [
+      {
+        "severity": "Warning",
+        "path": "PLC_Steckel_Mill > Program blocks > FB30_Tension_Control",
+        "message": "Possible data loss: Real to Int implicit conversion in network 3",
+        "line": 47
+      },
+      {
+        "severity": "Warning",
+        "path": "PLC_Steckel_Mill > Program blocks > FC200_Alarm_Handler",
+        "message": "Unreferenced tag 'Alarm_Bit_127' in Alarms tag table",
+        "line": 0
+      }
+    ]
+  }
+}

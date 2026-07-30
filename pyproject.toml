@@ -1,0 +1,126 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "genius-automation-community"
+version = "0.1.0"
+description = "MCP server for Siemens TIA Portal — open-core, MIT-licensed Community Edition"
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "MIT" }
+authors = [
+    { name = "PLCCursos", email = "contato@plccursos.com.br" },
+]
+keywords = [
+    "mcp",
+    "model-context-protocol",
+    "siemens",
+    "tia-portal",
+    "plc",
+    "automation",
+    "industrial",
+    "openness",
+]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Manufacturing",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: Microsoft :: Windows",
+    "Operating System :: POSIX :: Linux",
+    "Operating System :: MacOS",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Home Automation",
+    "Topic :: Software Development :: Embedded Systems",
+    "Typing :: Typed",
+]
+
+# Community Edition ships with ZERO third-party runtime dependencies.
+# The mock server uses only the Python standard library (http.server, json,
+# argparse, logging, pathlib, dataclasses). The real TIA Portal Openness
+# client (pythonnet, .NET Framework 4.8) is Windows-only and lives in the
+# proprietary Pro Edition repository.
+dependencies = []
+
+[project.optional-dependencies]
+# Dev tools mentioned in CONTRIBUTING.md and the PR template (pytest, mypy, black)
+dev = [
+    "pytest>=7.0",
+    "pytest-cov>=4.0",
+    "mypy>=1.0",
+    "black>=23.0",
+    "isort>=5.12",
+    "build>=0.10",
+    "twine>=4.0",
+]
+
+[project.urls]
+Homepage = "https://github.com/your-org/genius-automation-community"
+Repository = "https://github.com/your-org/genius-automation-community"
+Issues = "https://github.com/your-org/genius-automation-community/issues"
+Discussions = "https://github.com/your-org/genius-automation-community/discussions"
+"Pro Edition" = "https://plccursos.com.br/genius-automation/pricing"
+
+[project.scripts]
+# Installs a console script: `genius-mock` becomes runnable from any shell.
+# Equivalent to `python -m mock.server`. Picking the module form as the
+# canonical API (already documented in the README) and exposing this as a
+# convenience wrapper.
+genius-mock = "mock.server:main"
+
+[project.entry-points."genius.tools"]
+# Community Edition deliberately publishes no tool entry points here —
+# the Pro Edition registers its 34 advanced tools via the same group.
+# Mock-server tool definitions are loaded dynamically from mock/server.py
+# (TOOL_DEFINITIONS list) at runtime, not via entry points.
+
+# ---------------------------------------------------------------------------
+# Setuptools package discovery
+# ---------------------------------------------------------------------------
+# The project uses a hybrid layout:
+#   - mock/         (top-level, runs the mock server — `python -m mock.server`)
+#   - src/mcp_server_tools/  (src-layout for the ToolDef registry)
+# Both must be packaged; setuptools needs to scan both roots.
+[tool.setuptools]
+include-package-data = true
+
+[tool.setuptools.packages.find]
+where = ["src", "."]
+include = ["mock*", "mcp_server_tools*"]
+namespaces = false
+
+[tool.setuptools.package-data]
+# Mock fixtures ship inside the wheel so the server can locate them at runtime
+mock = ["fixtures/*.json"]
+# Top-level docs (README/CHANGELOG/LICENSE) are included via MANIFEST.in; using
+# the empty-string key in package-data is rejected by setuptools' schema.
+
+# ---------------------------------------------------------------------------
+# Dev-tool configuration (aligned with the patterns in CONTRIBUTING.md)
+# ---------------------------------------------------------------------------
+[tool.pytest.ini_options]
+minversion = "7.0"
+testpaths = ["tests"]
+addopts = ["-ra", "--strict-markers", "--strict-config"]
+pythonpath = ["src", "."]
+
+[tool.mypy]
+python_version = "3.11"
+strict = true
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = true
+files = ["src", "mock"]
+
+[tool.black]
+line-length = 100
+target-version = ["py311", "py312", "py313"]
+
+[tool.isort]
+profile = "black"
+line_length = 100
+known_first_party = ["mock", "mcp_server_tools"]

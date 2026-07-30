@@ -1,0 +1,14 @@
+blank_issues_enabled: false
+contact_links:
+  - name: 💬 GitHub Discussions
+    url: https://github.com/your-org/genius-automation-community/discussions
+    about: Casual Q&A and community discussion
+  - name: 📖 Documentation
+    url: https://github.com/your-org/genius-automation-community/blob/main/README.md
+    about: Read the full README and docs
+  - name: 💼 Pro Edition
+    url: https://plccursos.com.br/genius-automation/pricing
+    about: For Pro / Enterprise features and support
+  - name: 🔒 Security Issues
+    url: mailto:contato@plccursos.com.br
+    about: Report security vulnerabilities by email (NOT in public issues)

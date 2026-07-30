@@ -1,0 +1,73 @@
+# ------------------------------------------------------------------
+# Genius Automation Community Edition — .gitignore
+# ------------------------------------------------------------------
+# Goal: never accidentally push the local virtualenv, build outputs,
+# Python bytecode, packaging metadata, editor cruft, or OS debris
+# into the public MIT-licensed repository.
+#
+# Tested with: Python 3.11+, setuptools >=68, pytest 9.x
+# Last verified: 2026-07-29 (t_d7e0218d audit)
+# ------------------------------------------------------------------
+
+# --- Python bytecode & caches ------------------------------------
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+
+# --- Distribution / packaging ------------------------------------
+build/
+dist/
+*.egg-info
+*.egg-info/
+*.egg
+*.whl
+
+# --- Virtual environments ----------------------------------------
+.venv/
+venv/
+env/
+ENV/
+
+# --- pytest ------------------------------------------------------
+.pytest_cache/
+.coverage
+.coverage.*
+htmlcov/
+.tox/
+.cache
+.mypy_cache/
+.ruff_cache/
+
+# --- Editor / IDE ------------------------------------------------
+.idea/
+.vscode/
+*.swp
+*.swo
+.DS_Store
+
+# --- Local backups left by Sarah's pre-deploy backups -----------
+*.bak
+*.bak-*
+*.tmp
+*.orig
+
+# --- Build artifacts (proves 'pip install -e .' ran locally) ---
+/build/
+
+# --- Optional: lock files / logs / secrets -----------------------
+# uv.lock is intentionally NOT ignored — it pins exact dev-dep versions
+# and is harmless on Linux. Keeping it makes local dev reproducible.
+# (If repo grows and lock churns too much, switch to `uv.lock` ignore.)
+
+# --- Node-side leftovers (none today, but cheap insurance) -------
+node_modules/
+npm-debug.log*
+
+# --- Secrets (defense-in-depth) ----------------------------------
+.env
+.env.local
+.env.*.local
+*.pem
+*.key

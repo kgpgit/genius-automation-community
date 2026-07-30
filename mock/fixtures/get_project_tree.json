@@ -1,0 +1,79 @@
+{
+  "tool": "get_project_tree",
+  "status": "success",
+  "project": "SteelPlant_Line3",
+  "tree": {
+    "name": "SteelPlant_Line3",
+    "type": "root",
+    "children": [
+      {
+        "name": "PLC_Steckel_Mill",
+        "type": "device",
+        "device_class": "PLC",
+        "article_number": "6ES7518-4AP00-0AB0",
+        "children": [
+          {
+            "name": "Program blocks",
+            "type": "folder",
+            "children": [
+              {"name": "OB1", "type": "block", "block_type": "OB", "number": 1, "language": "LAD", "size_bytes": 4892},
+              {"name": "OB100", "type": "block", "block_type": "OB", "number": 100, "language": "LAD", "size_bytes": 1240},
+              {"name": "OB35", "type": "block", "block_type": "OB", "number": 35, "language": "LAD", "size_bytes": 2100, "comment": "Cyclic interrupt 100ms"},
+              {"name": "FB10_Steckel_Control", "type": "block", "block_type": "FB", "number": 10, "language": "SCL", "size_bytes": 18500},
+              {"name": "FB20_Roll_Gap", "type": "block", "block_type": "FB", "number": 20, "language": "SCL", "size_bytes": 12300},
+              {"name": "FB30_Tension_Control", "type": "block", "block_type": "FB", "number": 30, "language": "SCL", "size_bytes": 22100},
+              {"name": "FB40_Speed_Ref", "type": "block", "block_type": "FB", "number": 40, "language": "LAD", "size_bytes": 8700},
+              {"name": "FB50_Cooling_Spray", "type": "block", "block_type": "FB", "number": 50, "language": "LAD", "size_bytes": 6500},
+              {"name": "FC100_HMI_Interface", "type": "block", "block_type": "FC", "number": 100, "language": "LAD", "size_bytes": 4200},
+              {"name": "FC200_Alarm_Handler", "type": "block", "block_type": "FC", "number": 200, "language": "SCL", "size_bytes": 9800},
+              {"name": "FC300_Data_Logging", "type": "block", "block_type": "FC", "number": 300, "language": "SCL", "size_bytes": 7300}
+            ]
+          },
+          {
+            "name": "PLC tags",
+            "type": "folder",
+            "children": [
+              {"name": "Default tag table", "type": "tag_table", "tag_count": 145},
+              {"name": "IO_Inputs", "type": "tag_table", "tag_count": 89},
+              {"name": "IO_Outputs", "type": "tag_table", "tag_count": 67},
+              {"name": "Alarms", "type": "tag_table", "tag_count": 210},
+              {"name": "Recipe_Data", "type": "tag_table", "tag_count": 45}
+            ]
+          },
+          {
+            "name": "PLC data types",
+            "type": "folder",
+            "children": [
+              {"name": "MotorType", "type": "udt", "udt_number": 1, "size_bytes": 64},
+              {"name": "ValveType", "type": "udt", "udt_number": 2, "size_bytes": 32},
+              {"name": "RollStandType", "type": "udt", "udt_number": 10, "size_bytes": 128},
+              {"name": "TensionZoneType", "type": "udt", "udt_number": 11, "size_bytes": 96}
+            ]
+          }
+        ]
+      },
+      {
+        "name": "HMI_Panel",
+        "type": "device",
+        "device_class": "HMI",
+        "article_number": "6AV2124-0MC01-0AX0",
+        "children": [
+          {"name": "Screens", "type": "folder", "item_count": 24},
+          {"name": "Tags", "type": "folder", "tag_count": 512},
+          {"name": "Alarms", "type": "folder", "alarm_count": 180}
+        ]
+      },
+      {
+        "name": "Sinamics_S120",
+        "type": "device",
+        "device_class": "Drive",
+        "article_number": "6SL3910-1KE21-0AA0",
+        "children": [
+          {"name": "Drive_1_Main_Mill", "type": "drive_object", "power_kw": 3500},
+          {"name": "Drive_2_Coiler_L", "type": "drive_object", "power_kw": 1800},
+          {"name": "Drive_3_Coiler_R", "type": "drive_object", "power_kw": 1800}
+        ]
+      }
+    ]
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "plc": "PLC_1",
+  "tags": [
+    {"name": "Motor_Start", "address": "%I0.0", "data_type": "Bool", "value": false, "table": "Default tag table"},
+    {"name": "Motor_Stop", "address": "%I0.1", "data_type": "Bool", "value": false, "table": "Default tag table"},
+    {"name": "Motor_Running", "address": "%Q0.0", "data_type": "Bool", "value": false, "table": "Default tag table"},
+    {"name": "Motor_Speed", "address": "%MW10", "data_type": "Int", "value": 0, "table": "Default tag table"},
+    {"name": "Conveyor_Count", "address": "%MW12", "data_type": "DInt", "value": 0, "table": "Default tag table"}
+  ],
+  "count": 5,
+  "_mock": true
+}

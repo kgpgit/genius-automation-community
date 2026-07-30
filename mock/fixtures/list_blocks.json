@@ -1,0 +1,15 @@
+{
+  "plc": "PLC_1",
+  "blocks": [
+    {"name": "OB1", "type": "OB", "number": 1, "language": "FBD", "size_bytes": 2048, "last_modified": "2026-05-12T10:30:00"},
+    {"name": "OB100", "type": "OB", "number": 100, "language": "FBD", "size_bytes": 1024, "last_modified": "2026-05-12T10:30:00"},
+    {"name": "FB10_Steckel_Control", "type": "FB", "number": 10, "language": "SCL", "size_bytes": 8192, "last_modified": "2026-06-01T14:22:00"},
+    {"name": "FB20_Motor_Control", "type": "FB", "number": 20, "language": "LAD", "size_bytes": 4096, "last_modified": "2026-06-05T09:15:00"},
+    {"name": "FC5_Scale_AI", "type": "FC", "number": 5, "language": "SCL", "size_bytes": 2048, "last_modified": "2026-04-18T11:45:00"},
+    {"name": "FC10_Alarm_Handler", "type": "FC", "number": 10, "language": "SCL", "size_bytes": 3072, "last_modified": "2026-05-22T16:00:00"},
+    {"name": "DB100_Motor_Data", "type": "DB", "number": 100, "language": "DB", "size_bytes": 1024, "last_modified": "2026-06-05T09:15:00"},
+    {"name": "DB200_Recipe", "type": "DB", "number": 200, "language": "DB", "size_bytes": 4096, "last_modified": "2026-06-10T13:30:00"}
+  ],
+  "count": 8,
+  "_mock": true
+}
