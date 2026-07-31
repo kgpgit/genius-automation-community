@@ -13,11 +13,11 @@ where `state` is a ServerState-like object exposing at least `get_project(name)`
 This module is intentionally dependency-free (no .NET, no pythonnet) so it can
 be imported on Linux for unit tests and mock server runs.
 """
+
 from __future__ import annotations
 
 from dataclasses import dataclass, field
 from typing import Any, Callable, Dict, List, Optional
-
 
 ToolHandler = Callable[[Dict[str, Any], Any], Dict[str, Any]]
 

@@ -101,20 +101,21 @@ chore: bump version to 1.0.1
 
 ```
 genius-automation-community/
-├── src/
-│   └── mcp_server_tools/      # Core MCP server code
-├── mock/                       # Mock server (runs on Linux, no TIA Portal)
-│   ├── server.py              # HTTP server with 5 community tools
-│   ├── fixtures/              # Sample data for testing
-│   └── README.md
-├── tests/                      # pytest tests
-├── docs/                       # Documentation
-├── config/                     # Configuration templates
-├── templates/                  # TIA Portal project templates
-├── scripts/                    # Utility scripts
-├── README.md                   # This file's parent
-├── LICENSE                     # MIT
-└── CONTRIBUTING.md            # This file
+├── src/                         # Source package (installed via pip install -e .)
+│   └── mcp_server_tools/        # Core MCP server code (__init__.py, tools.py)
+├── mock/                        # Mock server (runs on Linux, no TIA Portal required)
+│   ├── server.py                # HTTP server exposing the 5 community tools
+│   ├── fixtures/                # 5 sample JSON payloads (connect, read_tags, list_blocks, get_project_tree, compile)
+│   └── README.md                # Mock-specific docs
+├── tests/                       # pytest tests (test_packaging.py and friends)
+├── README.md                    # Project overview & quick-start
+├── CONTRIBUTING.md              # This file
+├── CHANGELOG.md                 # Release notes
+├── CODE_OF_CONDUCT.md
+├── SECURITY.md
+├── LICENSE                      # MIT
+├── pyproject.toml               # PEP 621 build config
+└── uv.lock                      # Reproducible Python deps lockfile
 ```
 
 ---

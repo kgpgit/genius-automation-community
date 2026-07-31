@@ -19,17 +19,17 @@ Endpoints:
     GET  /health         — Health check
     SSE  /sse            — MCP SSE endpoint (optional)
 """
+
 from __future__ import annotations
 
 import argparse
 import json
 import logging
 import time
+from http.server import BaseHTTPRequestHandler, HTTPServer
 from importlib.metadata import PackageNotFoundError, version
 from pathlib import Path
 from typing import Any, Dict, List, Optional
-
-from http.server import HTTPServer, BaseHTTPRequestHandler
 from urllib.parse import urlparse
 
 logger = logging.getLogger("genius-automation-mock")
@@ -63,7 +63,7 @@ TOOL_DEFINITIONS: List[Dict[str, Any]] = [
                     "type": "string",
                     "enum": ["with_user_interface", "without_user_interface", "attach"],
                     "default": "without_user_interface",
-                    "description": "How to open the TIA Portal session. 'with_user_interface' requires a desktop session."
+                    "description": "How to open the TIA Portal session. 'with_user_interface' requires a desktop session.",
                 },
             },
         },
@@ -79,7 +79,7 @@ TOOL_DEFINITIONS: List[Dict[str, Any]] = [
                 "tag_names": {
                     "type": "array",
                     "items": {"type": "string"},
-                    "description": "Optional whitelist of tag names to read."
+                    "description": "Optional whitelist of tag names to read.",
                 },
             },
         },
@@ -117,7 +117,10 @@ TOOL_DEFINITIONS: List[Dict[str, Any]] = [
         "input_schema": {
             "type": "object",
             "properties": {
-                "plc": {"type": "string", "description": "Omit to compile the entire project. Otherwise compile only this PLC."},
+                "plc": {
+                    "type": "string",
+                    "description": "Omit to compile the entire project. Otherwise compile only this PLC.",
+                },
             },
         },
     },
@@ -129,6 +132,7 @@ TOOL_NAMES = {t["name"] for t in TOOL_DEFINITIONS}
 # ---------------------------------------------------------------------------
 # Fixture loader
 # ---------------------------------------------------------------------------
+
 
 def load_fixture(tool_name: str, arguments: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
     """Load a fixture file for the given tool name.
@@ -147,7 +151,7 @@ def load_fixture(tool_name: str, arguments: Optional[Dict[str, Any]] = None) -> 
         }
 
     try:
-        data = json.loads(fixture_path.read_text(encoding="utf-8"))
+        data: Dict[str, Any] = json.loads(fixture_path.read_text(encoding="utf-8"))
     except json.JSONDecodeError as exc:
         return {"error": f"Fixture parse error: {exc}", "tool": tool_name}
 
@@ -155,14 +159,20 @@ def load_fixture(tool_name: str, arguments: Optional[Dict[str, Any]] = None) -> 
     if arguments:
         # For set_ip_address: override with actual requested values
         if tool_name == "set_ip_address":
-            data["changed"]["ip_address"] = arguments.get("ip_address", data["changed"].get("ip_address"))
-            data["changed"]["subnet_mask"] = arguments.get("subnet_mask", data["changed"].get("subnet_mask"))
+            data["changed"]["ip_address"] = arguments.get(
+                "ip_address", data["changed"].get("ip_address")
+            )
+            data["changed"]["subnet_mask"] = arguments.get(
+                "subnet_mask", data["changed"].get("subnet_mask")
+            )
             if arguments.get("gateway"):
                 data["changed"]["gateway"] = arguments["gateway"]
         # For add_module: override with actual requested values
         elif tool_name == "add_module":
             data["plc_name"] = arguments.get("plc_name", data.get("plc_name"))
-            data["module_identifier"] = arguments.get("module_identifier", data.get("module_identifier"))
+            data["module_identifier"] = arguments.get(
+                "module_identifier", data.get("module_identifier")
+            )
             data["position"] = arguments.get("position", data.get("position"))
         # For remove_module: override
         elif tool_name == "remove_module":
@@ -191,6 +201,7 @@ def load_fixture(tool_name: str, arguments: Optional[Dict[str, Any]] = None) -> 
         # For publish_library_version: compute new version
         elif tool_name == "publish_library_version":
             import copy
+
             prev = data.get("previous_version", "1.3.0")
             bump = arguments.get("bump", "patch")
             explicit = arguments.get("version")
@@ -214,7 +225,9 @@ def load_fixture(tool_name: str, arguments: Optional[Dict[str, Any]] = None) -> 
         elif tool_name == "list_libraries":
             lib_type = arguments.get("library_type", "all")
             if lib_type != "all":
-                data["libraries"] = [l for l in data.get("libraries", []) if l.get("type") == lib_type]
+                data["libraries"] = [
+                    l for l in data.get("libraries", []) if l.get("type") == lib_type
+                ]
                 data["count"] = len(data["libraries"])
             data["filter"] = lib_type
 
@@ -228,6 +241,7 @@ def load_fixture(tool_name: str, arguments: Optional[Dict[str, Any]] = None) -> 
 # ---------------------------------------------------------------------------
 # HTTP handler
 # ---------------------------------------------------------------------------
+
 
 class MockMCPServerHandler(BaseHTTPRequestHandler):
     """HTTP handler that serves mock MCP tool responses."""
@@ -263,40 +277,49 @@ class MockMCPServerHandler(BaseHTTPRequestHandler):
         path = parsed.path.rstrip("/") or "/"
 
         if path == "/" or path == "/info":
-            self._send_json(200, {
-                "server": "Genius Automation Mock Server",
-                "version": PACKAGE_VERSION,
-                "mode": "mock",
-                "project": "SteelPlant_Line3 (mock)",
-                "tool_count": len(TOOL_DEFINITIONS),
-                "endpoints": {
-                    "GET /": "This info page",
-                    "GET /tools": "List all available tools",
-                    "POST /tools/{name}": "Call a tool with JSON arguments",
-                    "GET /health": "Health check",
+            self._send_json(
+                200,
+                {
+                    "server": "Genius Automation Mock Server",
+                    "version": PACKAGE_VERSION,
+                    "mode": "mock",
+                    "project": "SteelPlant_Line3 (mock)",
+                    "tool_count": len(TOOL_DEFINITIONS),
+                    "endpoints": {
+                        "GET /": "This info page",
+                        "GET /tools": "List all available tools",
+                        "POST /tools/{name}": "Call a tool with JSON arguments",
+                        "GET /health": "Health check",
+                    },
+                    "note": "All responses are mock data from fixtures/. No TIA Portal connection.",
                 },
-                "note": "All responses are mock data from fixtures/. No TIA Portal connection.",
-            })
+            )
         elif path == "/tools":
-            self._send_json(200, {
-                "tools": [
-                    {
-                        "name": t["name"],
-                        "description": t["description"],
-                        "input_schema": t["input_schema"],
-                    }
-                    for t in TOOL_DEFINITIONS
-                ],
-                "count": len(TOOL_DEFINITIONS),
-            })
+            self._send_json(
+                200,
+                {
+                    "tools": [
+                        {
+                            "name": t["name"],
+                            "description": t["description"],
+                            "input_schema": t["input_schema"],
+                        }
+                        for t in TOOL_DEFINITIONS
+                    ],
+                    "count": len(TOOL_DEFINITIONS),
+                },
+            )
         elif path == "/health":
-            self._send_json(200, {
-                "status": "healthy",
-                "server": "genius-automation-mock",
-                "mode": "mock",
-                "fixtures_loaded": len(list(FIXTURES_DIR.glob("*.json"))),
-                "uptime_seconds": round(time.time() - self.server._start_time, 1),  # type: ignore
-            })
+            self._send_json(
+                200,
+                {
+                    "status": "healthy",
+                    "server": "genius-automation-mock",
+                    "mode": "mock",
+                    "fixtures_loaded": len(list(FIXTURES_DIR.glob("*.json"))),
+                    "uptime_seconds": round(time.time() - self.server._start_time, 1),  # type: ignore
+                },
+            )
         else:
             self._send_json(404, {"error": f"Not found: {path}"})
 
@@ -309,10 +332,13 @@ class MockMCPServerHandler(BaseHTTPRequestHandler):
             tool_name = parts[1]
 
             if tool_name not in TOOL_NAMES:
-                self._send_json(404, {
-                    "error": f"Unknown tool: '{tool_name}'",
-                    "available_tools": sorted(TOOL_NAMES),
-                })
+                self._send_json(
+                    404,
+                    {
+                        "error": f"Unknown tool: '{tool_name}'",
+                        "available_tools": sorted(TOOL_NAMES),
+                    },
+                )
                 return
 
             arguments = self._read_body()
@@ -332,12 +358,15 @@ class MockMCPServerHandler(BaseHTTPRequestHandler):
 # Server startup
 # ---------------------------------------------------------------------------
 
+
 def main(argv: Optional[List[str]] = None) -> int:
     parser = argparse.ArgumentParser(
         description="Genius Automation Mock Server — returns fixture data on Linux"
     )
     parser.add_argument("--host", default=DEFAULT_HOST, help=f"Bind host (default: {DEFAULT_HOST})")
-    parser.add_argument("--port", type=int, default=DEFAULT_PORT, help=f"Port (default: {DEFAULT_PORT})")
+    parser.add_argument(
+        "--port", type=int, default=DEFAULT_PORT, help=f"Port (default: {DEFAULT_PORT})"
+    )
     parser.add_argument("--verbose", "-v", action="store_true", help="Verbose logging")
     args = parser.parse_args(argv)
 
@@ -378,7 +407,7 @@ def main(argv: Optional[List[str]] = None) -> int:
     print(f"  curl -X POST http://localhost:{args.port}/tools/list_devices")
     print(f"  curl -X POST http://localhost:{args.port}/tools/get_block_code \\")
     print(f"       -H 'Content-Type: application/json' \\")
-    print(f"       -d '{{\"block_name\": \"FB10_Steckel_Control\"}}'\n")
+    print(f'       -d \'{{"block_name": "FB10_Steckel_Control"}}\'\n')
 
     try:
         server.serve_forever()

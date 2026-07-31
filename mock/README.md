@@ -8,12 +8,12 @@ or .NET dependencies.
 
 ```bash
 # Start the mock server on port 8001
-cd /home/sarah/Documents/Projects/TIA-Automation/genius-automation
+cd /home/sarah/Documents/Projects/genius-automation-community
 python3 mock/server.py --port 8001
 
 # Test it
 curl http://localhost:8001/health
-curl -X POST http://localhost:8001/tools/list_devices
+curl -X POST http://localhost:8001/tools/list_blocks
 ```
 
 ## Why Mock Mode?
@@ -42,45 +42,31 @@ All fixtures are based on a realistic **steel plant cold rolling line** (Linha d
 | Blocks | 11 (OB1, OB35, OB100, FB10-FB50, FC100-FC300) |
 | Tags | 556 across 5 tables |
 
-## Available Tools (19)
+## Available Tools (5)
 
-### Base Tools (7)
+### Community Tools (5)
 | Tool | Description |
 |------|-------------|
-| `open_project` | Open a .ap21 project file |
-| `close_project` | Close current project |
-| `get_project_tree` | Hierarchical tree of devices, blocks, tags |
-| `get_tag_table` | List PLC tags from a tag table |
-| `get_block_code` | Source code, interface, metadata of a block |
-| `compile_project` | Compile project/PLC, return errors |
-| `save_project` | Save project to disk |
+| `connect` | Establish a session with TIA Portal. Returns the mode used (`with_user_interface` / `without_user_interface`) and TIA Portal version detected. |
+| `read_tags` | Read the current value of one or more tags from a PLC. If `tag_names` is omitted, all tags in the default tag table are returned. Read-only. |
+| `list_blocks` | List all blocks in a given PLC inside the project. Returns block names, types (FB/FC/DB/OB), and metadata. Read-only. |
+| `get_project_tree` | Get the hierarchical project tree: devices, software containers, block groups, tag tables. Read-only. |
+| `compile` | Compile the current project (or a specific PLC). Returns errors and warnings. Does NOT modify the PLC runtime, only validates the offline project. |
 
-### HW Config Tools (7)
-| Tool | Description |
-|------|-------------|
-| `list_devices` | List all devices (PLC, HMI, Drive) |
-| `get_hardware_info` | Detailed module/rack configuration |
-| `set_ip_address` | Set PROFINET IP address |
-| `configure_plc` | Set rack, slot, station name |
-| `add_module` | Add I/O module from hardware catalog |
-| `remove_module` | Remove module by name or slot |
-| `configure_profinet` | List/add/remove PROFINET IO devices |
-
-### Diagnostics Tools (5)
-| Tool | Description |
-|------|-------------|
-| `get_compile_errors` | Detailed compile diagnostics |
-| `get_online_status` | PLC connection + CPU state (RUN/STOP) |
-| `read_diagnostic_buffer` | PLC event log (diagnostic buffer) |
-| `compare_online_offline` | Diff online vs offline blocks/config |
-| `upload_from_device` | Upload blocks from PLC to project |
+> **Note:** The MIT Community Edition ships these 5 tools. The first one (`connect`) establishes
+> a session with TIA Portal; the remaining four are strictly read-only or compile-only
+> (no PLC runtime writes). The Pro Edition (commercial, BSL) extends this base with
+> write-capable HW Config and Diagnostics tools (`open_project`, `close_project`,
+> `save_project`, `list_devices`, `get_hardware_info`, `set_ip_address`, `compile_project`,
+> and 12 more — 19 in total). The mock fixtures in this repo intentionally cover
+> **only the 5 Community tools**.
 
 ## API Endpoints
 
 | Method | Path | Description |
 |--------|------|-------------|
 | GET | `/` | Server info + endpoint list |
-| GET | `/tools` | List all 19 tools with schemas |
+| GET | `/tools` | List all 5 tools with schemas |
 | GET | `/health` | Health check (status, uptime, fixture count) |
 | POST | `/tools/{name}` | Call a tool (body = JSON arguments) |
 
@@ -93,23 +79,23 @@ curl http://localhost:8001/
 # List all tools
 curl http://localhost:8001/tools
 
-# Call list_devices (no arguments needed)
-curl -X POST http://localhost:8001/tools/list_devices
+# Call list_blocks (no arguments needed)
+curl -X POST http://localhost:8001/tools/list_blocks
 
-# Call get_block_code with arguments
-curl -X POST http://localhost:8001/tools/get_block_code \
+# Call read_tags with arguments
+curl -X POST http://localhost:8001/tools/read_tags \
   -H 'Content-Type: application/json' \
-  -d '{"block_name": "FB10_Steckel_Control"}'
+  -d '{"plc": "PLC_1"}'
 
-# Call get_online_status
-curl -X POST http://localhost:8001/tools/get_online_status \
+# Call get_project_tree with arguments
+curl -X POST http://localhost:8001/tools/get_project_tree \
   -H 'Content-Type: application/json' \
-  -d '{"plc_name": "PLC_Steckel_Mill"}'
+  -d '{"max_depth": 3}'
 
-# Set IP address (arguments override fixture defaults)
-curl -X POST http://localhost:8001/tools/set_ip_address \
+# Call compile with arguments
+curl -X POST http://localhost:8001/tools/compile \
   -H 'Content-Type: application/json' \
-  -d '{"device_name": "PLC_Steckel_Mill", "ip_address": "10.0.0.50"}'
+  -d '{"plc": "PLC_1"}'
 ```
 
 ## Architecture
@@ -122,13 +108,13 @@ Linux Agent (Scribe/Studio/Scout)
 │  Mock MCP Server        │
 │  (mock/server.py)       │
 │                         │
-│  Tool Registry (19)     │
+│  Tool Registry (5)      │
 │  Fixture Loader         │
 │                         │
 │  mock/fixtures/         │
-│    open_project.json    │
-│    list_devices.json    │
-│    ... (19 files)       │
+│    connect.json         │
+│    list_blocks.json     │
+│    ... (5 files)        │
 └─────────────────────────┘
 ```
 
@@ -137,14 +123,14 @@ Fixtures are plain JSON files that mirror the real MCP server's response format.
 
 ## Argument Override
 
-For tools that accept parameters (like `set_ip_address`, `add_module`), the mock server
+For tools that accept parameters (like `read_tags`, `compile`), the mock server
 intelligently merges the caller's arguments into the fixture data. This means:
 
 ```bash
-# The response will show YOUR ip_address, not the fixture default
-curl -X POST http://localhost:8001/tools/set_ip_address \
-  -d '{"device_name": "PLC", "ip_address": "10.99.99.99"}'
-# → changed: {"ip_address": "10.99.99.99", "subnet_mask": "255.255.255.0"}
+# The response will show YOUR tag values, not the fixture default
+curl -X POST http://localhost:8001/tools/read_tags \
+  -d '{"plc": "PLC_1", "tag_names": ["Motor_Start", "Motor_Stop"]}'
+# → returns only Motor_Start + Motor_Stop, values from fixture merged with override
 ```
 
 ## Integration with MCP Clients
@@ -168,26 +154,12 @@ To use the mock server as an MCP tool provider in your MCP client configuration:
 mock/
 ├── __init__.py          # Package marker
 ├── server.py            # HTTP server + tool registry (main entry point)
-├── fixtures/            # 19 JSON files with realistic steel plant data
-│   ├── open_project.json
-│   ├── close_project.json
+├── fixtures/            # 5 JSON files with realistic steel plant data
+│   ├── connect.json
+│   ├── read_tags.json
+│   ├── list_blocks.json
 │   ├── get_project_tree.json
-│   ├── get_tag_table.json
-│   ├── get_block_code.json
-│   ├── compile_project.json
-│   ├── save_project.json
-│   ├── list_devices.json
-│   ├── get_hardware_info.json
-│   ├── set_ip_address.json
-│   ├── configure_plc.json
-│   ├── add_module.json
-│   ├── remove_module.json
-│   ├── configure_profinet.json
-│   ├── get_compile_errors.json
-│   ├── get_online_status.json
-│   ├── read_diagnostic_buffer.json
-│   ├── compare_online_offline.json
-│   └── upload_from_device.json
+│   └── compile.json
 └── README.md            # This file
 ```
 

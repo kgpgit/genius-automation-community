@@ -115,6 +115,15 @@ warn_return_any = true
 warn_unused_configs = true
 disallow_untyped_defs = true
 files = ["src", "mock"]
+# The project uses a src-layout (src/mcp_server_tools/...). With mypy's
+# default per-module import resolution, `from mcp_server_tools.tools import …`
+# coming from `src/mcp_server_tools/__init__.py` is treated as a third-party
+# import ("mcp_server_tools") and triggers [import-not-found]. Setting
+# `mypy_path = "src"` lets mypy find the package, and `explicit_package_bases`
+# tells it to treat "src/mcp_server_tools" as the root of package "mcp_server_tools"
+# rather than trying to discover it on the import path.
+mypy_path = "src"
+explicit_package_bases = true
 
 [tool.black]
 line-length = 100

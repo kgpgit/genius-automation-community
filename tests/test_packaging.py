@@ -4,6 +4,7 @@ These tests verify that the packaging metadata added in t_7d3df6fc is
 correct: the package is installable, importable, exposes the right
 metadata, and the mocked MCP server can boot a real HTTP listener.
 """
+
 from __future__ import annotations
 
 import importlib
@@ -17,7 +18,6 @@ import urllib.request
 from pathlib import Path
 
 import pytest
-
 
 # ---------------------------------------------------------------------------
 # Package metadata
@@ -68,7 +68,7 @@ def test_package_has_dev_extras():
 
 def test_mock_server_reports_installed_package_version():
     """The HTTP identity must not drift from the distributable package version."""
-    from mock.server import MockMCPServerHandler, PACKAGE_VERSION
+    from mock.server import PACKAGE_VERSION, MockMCPServerHandler
 
     expected = importlib.metadata.version("genius-automation-community")
     assert PACKAGE_VERSION == expected
@@ -112,6 +112,7 @@ def test_fixtures_dir_present():
 
 def test_mock_server_main_is_callable():
     from mock.server import main
+
     assert callable(main)
 
 
@@ -134,14 +135,14 @@ def test_genius_mock_console_script_exists():
     eps = md.entry_points(group="console_scripts")
     names = {ep.name for ep in eps}
     assert "genius-mock" in names, (
-        "genius-mock console script not declared in package metadata; "
-        f"found: {sorted(names)}"
+        "genius-mock console script not declared in package metadata; " f"found: {sorted(names)}"
     )
 
     # Sanity check: if the script happens to be on PATH, the resolved path
     # should mention 'genius-mock'. Non-fatal when PATH doesn't include the
     # project venv (e.g. CI runs `pytest` without `source .venv/bin/activate`).
     import shutil
+
     path = shutil.which("genius-mock")
     if path is not None:
         assert "genius-mock" in path
@@ -165,9 +166,7 @@ def test_genius_mock_serves_health_endpoint():
         last_err = None
         while time.time() < deadline:
             try:
-                with urllib.request.urlopen(
-                    f"http://127.0.0.1:{port}/health", timeout=1
-                ) as resp:
+                with urllib.request.urlopen(f"http://127.0.0.1:{port}/health", timeout=1) as resp:
                     assert resp.status == 200
                     body = json.loads(resp.read())
                     assert body["status"] == "healthy"
@@ -202,13 +201,17 @@ def test_genius_mock_lists_5_tools():
         last_err = None
         while time.time() < deadline:
             try:
-                with urllib.request.urlopen(
-                    f"http://127.0.0.1:{port}/tools", timeout=1
-                ) as resp:
+                with urllib.request.urlopen(f"http://127.0.0.1:{port}/tools", timeout=1) as resp:
                     body = json.loads(resp.read())
                     assert body["count"] == 5
                     names = {t["name"] for t in body["tools"]}
-                    assert names == {"connect", "read_tags", "list_blocks", "get_project_tree", "compile"}
+                    assert names == {
+                        "connect",
+                        "read_tags",
+                        "list_blocks",
+                        "get_project_tree",
+                        "compile",
+                    }
                     return
             except Exception as e:
                 last_err = e
@@ -239,9 +242,7 @@ def test_mock_server_info_reports_package_version():
         last_err = None
         while time.time() < deadline:
             try:
-                with urllib.request.urlopen(
-                    f"http://127.0.0.1:{port}/info", timeout=1
-                ) as resp:
+                with urllib.request.urlopen(f"http://127.0.0.1:{port}/info", timeout=1) as resp:
                     assert resp.status == 200
                     body = json.loads(resp.read())
                     server_header = resp.headers["Server"]
@@ -261,3 +262,42 @@ def test_mock_server_info_reports_package_version():
             proc.wait(timeout=3)
         except subprocess.TimeoutExpired:
             proc.kill()
+
+
+# ---------------------------------------------------------------------------
+# Docstring ↔ TOOL_DEFINITIONS contract (yellow polish B)
+# ---------------------------------------------------------------------------
+
+
+def test_mcp_server_tools_init_docstring_lists_real_tools():
+    """The __init__.py docstring is the public contract of the Community
+    Edition tool set. It MUST list exactly the tools present in
+    ``mock.server.TOOL_DEFINITIONS`` so a reader can rely on it without
+    booting the mock server.
+
+    Catches silent drift when a tool is renamed in TOOL_DEFINITIONS but the
+    docstring is forgotten.
+    """
+    import re
+
+    import mcp_server_tools
+    from mock.server import TOOL_DEFINITIONS
+
+    assert mcp_server_tools.__doc__ is not None, "missing package docstring"
+
+    # Extract bullet-listed tool names. Each line starts with
+    # "  - <name>" inside the Community Edition tool list.
+    bullets = re.findall(
+        r"^\s*-\s+([a-z_][a-z0-9_]*)\s*\(",
+        mcp_server_tools.__doc__,
+        flags=re.MULTILINE,
+    )
+    documented = set(bullets)
+
+    expected = {t["name"] for t in TOOL_DEFINITIONS}
+    assert documented == expected, (
+        "mcp_server_tools docstring lists "
+        f"{sorted(documented) or '∅'}, "
+        f"but TOOL_DEFINITIONS declares {sorted(expected)}. "
+        "Sync the docstring to the real registry in mock/server.py."
+    )

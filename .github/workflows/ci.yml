@@ -1,0 +1,60 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  quality:
+    name: lint + type-check + tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.11", "3.12", "3.13"]
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Cache pip
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ matrix.python-version }}-${{ hashFiles('pyproject.toml', 'uv.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-${{ matrix.python-version }}-
+            ${{ runner.os }}-pip-
+
+      - name: Install package with dev extras (pytest, mypy, black)
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e ".[dev]"
+
+      - name: Run pytest
+        run: pytest -v
+
+      - name: Run mypy (strict)
+        run: mypy src mock
+
+      - name: Run black --check
+        run: black --check src mock tests
+
+      - name: Run isort --check
+        run: isort --check-only --diff src mock tests
