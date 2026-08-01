@@ -67,6 +67,15 @@ pytest
 mypy src/
 ```
 
+> **Why `mypy src/` (and not `mypy src/mock`)?** The project uses a flat
+> **src-layout**: the installable package lives under `src/mcp_server_tools/`,
+> while `mock/` is a *standalone* HTTP server shipped alongside it for
+> Linux/macOS development (no TIA Portal dependency). CI runs `mypy src mock`
+> to type-check both trees together. Locally, `mypy src/` is enough if you
+> only touched the installable package; if you touched the mock server,
+> run `mypy src mock` instead. See `.github/workflows/ci.yml` for the
+> authoritative command set.
+
 ### Test Requirements
 
 - New features must include unit tests
