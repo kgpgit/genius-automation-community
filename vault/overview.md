@@ -72,7 +72,7 @@ vault/
 - **Pricing:** `https://plccursos.com.br/genius-automation/pricing` ($29/mo Pro)
 
 ## 📜 Histórico de Entregas Recentes (Kanban Sync)
-> *Atualizado automaticamente pelo motor de orquestração do Hermes em 2026-08-02 10:14 BRT*
+> *Atualizado automaticamente pelo motor de orquestração do Hermes em 2026-08-02 10:28 BRT*
 
 - **[2026-07-29] Genius Automation Pro: Auditoria de prontidão para restauração + repo GitHub privado (BSL, 119 tools)** (`t_8a45f0b7`)
   - _Resumo:_ Auditoria Pro canônico: 97 tools, 219/219 tests PASS, working tree dirty, LICENSE ausente. Veredito GO.
